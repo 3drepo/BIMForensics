@@ -1,1 +1,506 @@
-[{"id":"719f792d.07f598","type":"tab","label":"Group Sub-models","disabled":false,"info":"Groups sub-models in federation for colour overrides"},{"id":"514e952e.c7aedc","type":"inject","z":"719f792d.07f598","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":true,"x":137.3541717529297,"y":354.8541564941406,"wires":[["71f89245.a036ac"]]},{"id":"71f89245.a036ac","type":"function","z":"719f792d.07f598","name":"MAIN INPUTS","func":"// INPUTS\n\nteamspace = \"***\";  // make sure you have permissions to acces this teamspace\nmodelID = \"***\";    // make sure you have permissions to acces this model or federation\n\n\n// ignore the rest\n\ntry{\n    flow.set(\"teamspace\", teamspace);\n}catch(error){\n    node.error(\"Missing teamspace\", msg);\n    return;\n}\ntry{\n    flow.set(\"modelID\", modelID);\n}catch(error){\n    node.error(\"Missing modelID\", msg);\n    return;\n}\n\nreturn msg;","outputs":1,"noerr":0,"x":170.07066345214844,"y":196.92135620117188,"wires":[["5680be06.70a9c"]]},{"id":"a3e360f7.0209f","type":"http request","z":"719f792d.07f598","name":"","method":"POST","ret":"obj","url":"{{{topic}}}","tls":"","x":469.85418701171875,"y":177.35415649414062,"wires":[["fcb1d1da.6651d"]]},{"id":"fcb1d1da.6651d","type":"function","z":"719f792d.07f598","name":"cookie","func":"var cookies = msg.responseCookies;\n\ntry{\n    cookies[\"connect.sid\"];\n}catch(error){\n    node.error(\"Invalid username or password\", msg);\n    return;\n}\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": \"connect.sid=\" + cookies[\"connect.sid\"][\"value\"]\n};\n\nflow.set(\"cookie\",msg.headers[\"Cookie\"]);\n\nreturn msg;\n\n","outputs":1,"noerr":0,"x":472.40985107421875,"y":229.1060791015625,"wires":[["40504286.07317c","97591ff2.7c927"]]},{"id":"5680be06.70a9c","type":"function","z":"719f792d.07f598","name":"header","func":"try{\n    test = global.get(\"username\")[0];\n}catch(error){\n    node.error(\"Login error - login at http://localhost:1880/ui/#/0\", msg);\n    return;\n}\ntry{\n    test = global.get(\"password\")[0];\n}catch(error){\n    node.error(\"Login error - login at http://localhost:1880/ui/#/0\", msg);\n    return;\n}\n\n\nmsg.payload = {\n \"username\": global.get(\"username\"), \n \"password\": global.get(\"password\")\n};\n\nmsg.topic = \"https://api1.www.3drepo.io/api/login\";\n\nmsg.headers = {'content-type':'application/json'};\n\nreturn msg;","outputs":1,"noerr":0,"x":471.8144226074219,"y":128.4920425415039,"wires":[["a3e360f7.0209f"]]},{"id":"840e341e.1ec5f8","type":"comment","z":"719f792d.07f598","name":"login","info":"","x":473.72576904296875,"y":81.56598663330078,"wires":[]},{"id":"34ae1f92.e139a","type":"http request","z":"719f792d.07f598","name":"","method":"POST","ret":"obj","url":"{{{topic}}}","tls":"","x":1091.1041259765625,"y":471.1041564941406,"wires":[[]]},{"id":"f92faa5b.d25478","type":"function","z":"719f792d.07f598","name":"group API call","func":"var cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.topic = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/groups\";\n\nvar group = {};\ngroup.name = msg.inputs.groupName ;\ngroup.description = msg.inputs.desc;\ngroup.author = global.get(\"username\"); \ngroup.createdAt = Date.now();\ngroup.color = msg.inputs.colour;\ngroup.objects = msg.payload;\n\nmsg.payload = group;\n\nreturn msg;","outputs":1,"noerr":0,"x":1089.8067626953125,"y":416.2953796386719,"wires":[["34ae1f92.e139a"]]},{"id":"bd65d9f5.d2eaf8","type":"function","z":"719f792d.07f598","name":"shared IDs","func":"function getKeyByValue(object, value) {\n    return Object.keys(object).find(key => object[key] === value);\n}\n\nvar sharedIDs = [];\nIDmap = flow.get(\"IDmap\");\ntry{\n    var test = IDmap.length;\n}catch(error){\n    node.error(\"Missing ID map\", msg);\n    return;\n}\n\nif (IDmap !== undefined) {\n    if (IDmap.subModels !== undefined) {        // if federation\n        for (var i = 0; i < msg.payload.length; i++) {\n            for (var j = 0; j < IDmap.subModels.length; j++) {\n                var key = getKeyByValue(IDmap.subModels[j].idMap, msg.payload[i]);\n                if (key !== undefined) {\n                    sharedIDs.push(msg.payload[i]);\n                    break;\n                }\n            }\n        }\n    } else {\n        for (var i = 0; i < msg.payload.length; i++) {\n            var key = getKeyByValue(IDmap.idMap, msg.payload[i]);\n            sharedIDs.push(msg.payload[i]);\n        }\n    }\n}\n\nmsg.payload = [{\n    \"account\": flow.get(\"teamspace\"),\n    \"model\": flow.get(\"modelID\"),\n    \"shared_ids\": sharedIDs,\n}];\n\nreturn msg;","outputs":1,"noerr":0,"x":1095.9058227539062,"y":357.3487854003906,"wires":[["f92faa5b.d25478"]]},{"id":"ef3c56a0.2768e8","type":"comment","z":"719f792d.07f598","name":"create group","info":"","x":1092.6142272949219,"y":256.55721282958984,"wires":[]},{"id":"831b199a.f5f8f8","type":"function","z":"719f792d.07f598","name":"INPUTS","func":"// INPUTS\n\ngroupName =  (msg.topic) ? msg.topic : \"Group\";\ndescription = msg.payload.length + \" from Node-RED\";\ncolour = [parseInt(Math.random()*255),parseInt(Math.random()*255),parseInt(Math.random()*255)];\n\n\n// ignore the rest\n\nmsg.inputs = {};\nmsg.inputs.groupName = groupName;\nmsg.inputs.desc = description;\nmsg.inputs.colour = colour;\n\nreturn msg;","outputs":1,"noerr":0,"x":1090.6278991699219,"y":310.9598617553711,"wires":[["bd65d9f5.d2eaf8"]]},{"id":"40504286.07317c","type":"function","z":"719f792d.07f598","name":"revisions API","func":"cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/\" + \"revisions.json\"\n\nreturn msg;","outputs":1,"noerr":0,"x":469.85418701171875,"y":423.6041564941406,"wires":[["bdecc5f0.920818"]]},{"id":"bdecc5f0.920818","type":"http request","z":"719f792d.07f598","name":"","method":"GET","ret":"obj","url":"{{{payload}}}","tls":"","x":469.8437805175781,"y":473.08330631256104,"wires":[["4d499f6a.3ae54"]]},{"id":"4d499f6a.3ae54","type":"function","z":"719f792d.07f598","name":"OUTPUTS","func":"// all revisions\n\nflow.set(\"revisions\", msg.payload);\n\nreturn {payload:\"\"};\n\n\n// uncomment and specify subset of revisions below\n\n// flow.set(\"revisions\", msg.payload.slice(0,10));\n","outputs":1,"noerr":0,"x":480.85072326660156,"y":521.8263902664185,"wires":[["6f038f87.5ab9b"]]},{"id":"80a7f3e9.1e554","type":"comment","z":"719f792d.07f598","name":"revisions","info":"get all revisions of a model\n\nto choose only subset of revisions use:\nmsg.payload.slice(0,3)\n\nplace after login","x":472.10418701171875,"y":377.07984924316406,"wires":[]},{"id":"6f038f87.5ab9b","type":"function","z":"719f792d.07f598","name":"ID map call","func":"cookie = flow.get(\"cookie\");\n\ntry{\n    revID = flow.get(\"revisions\")[0]._id;\n}catch(error){\n    node.error(\"Missing revisions\", msg);\n    return;\n}\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/revision/\" + revID + \"/idmap.json\";\n\nreturn msg;\n","outputs":1,"noerr":0,"x":761.1041870117188,"y":118.60416412353516,"wires":[["364369b7.1fc236"]]},{"id":"364369b7.1fc236","type":"http request","z":"719f792d.07f598","name":"","method":"GET","ret":"obj","url":"{{{payload}}}","tls":"","x":761.3776035308838,"y":172.1353416442871,"wires":[["660ed59a.7d9b0c","69d3f5af.aee49c"]]},{"id":"6254a3fa.d6e21c","type":"comment","z":"719f792d.07f598","name":"ID map","info":"","x":758.010721206665,"y":72.75756454467773,"wires":[]},{"id":"660ed59a.7d9b0c","type":"function","z":"719f792d.07f598","name":"set ID map","func":"flow.set(\"IDmap\", msg.payload);","outputs":1,"noerr":0,"x":756.760721206665,"y":226.42409896850586,"wires":[[]]},{"id":"6d8444ad.e24a3c","type":"comment","z":"719f792d.07f598","name":"how to","info":"set your teamspace and model ID of Lego_House_Federation in MAIN INPUTS\ndeploy\nopen or reload Lego_House_Federation in 3D Repo, see the results in Groups card","x":148.4583282470703,"y":101.8124771118164,"wires":[]},{"id":"f17f93c3.d8e28","type":"ui_text_input","z":"719f792d.07f598","name":"","label":"Username","group":"1582e6c5.6e0599","order":1,"width":0,"height":0,"passthru":false,"mode":"text","delay":300,"topic":"","x":158.6042022705078,"y":542.3541946411133,"wires":[["c6084915.d9ec88"]]},{"id":"4195a885.e7c868","type":"ui_text_input","z":"719f792d.07f598","name":"","label":"Password","group":"1582e6c5.6e0599","order":2,"width":0,"height":0,"passthru":false,"mode":"password","delay":300,"topic":"","x":157.6318817138672,"y":628.7474670410156,"wires":[["679f1226.cf285c"]]},{"id":"c6084915.d9ec88","type":"function","z":"719f792d.07f598","name":"username","func":"global.set(\"username\",msg.payload);","outputs":1,"noerr":0,"x":162.3541717529297,"y":586.3863143920898,"wires":[[]]},{"id":"679f1226.cf285c","type":"function","z":"719f792d.07f598","name":"password","func":"global.set(\"password\",msg.payload);\n\n","outputs":1,"noerr":0,"x":155.6918487548828,"y":670.4054565429688,"wires":[[]]},{"id":"2e6d8153.28021e","type":"comment","z":"719f792d.07f598","name":"login details","info":"input your login details in dashboard at\n\nhttp://localhost:1880/ui/#/0\n\nset as global variable hence use only once for multiple flows","x":154.27085876464844,"y":491.98380279541016,"wires":[]},{"id":"35f20737.2726c8","type":"function","z":"719f792d.07f598","name":"set flow variables","func":"if(msg.payload.subModels){\n    flow.set(\"subModels\", msg.payload.subModels);\n}","outputs":1,"noerr":0,"x":754.8541870117188,"y":518.6041870117188,"wires":[[]]},{"id":"c0929982.164998","type":"http request","z":"719f792d.07f598","name":"","method":"GET","ret":"obj","url":"{{{payload}}}","tls":"","x":757.3561401367188,"y":469.7977294921875,"wires":[["35f20737.2726c8"]]},{"id":"97591ff2.7c927","type":"function","z":"719f792d.07f598","name":"model settings","func":"cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n    \"content-type\":\"application/json\",\n    \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \".json\";\n\nreturn msg;","outputs":1,"noerr":0,"x":754.8605346679688,"y":422.35638427734375,"wires":[["c0929982.164998"]]},{"id":"eacfd95a.34e648","type":"comment","z":"719f792d.07f598","name":"settings","info":"","x":757.2078552246094,"y":375.2945556640625,"wires":[]},{"id":"69d3f5af.aee49c","type":"function","z":"719f792d.07f598","name":"group by submodel","func":"var group = {};\nvar subModels = flow.get(\"subModels\")\n\ntry{\n    for(var i=0; i<msg.payload.subModels.length; i++){\n        for(var j=0; j<subModels.length; j++){\n            if(msg.payload.subModels[i].model === subModels[j].model){\n                var prop = subModels[j].name;\n            }\n        }\n        if(!group.hasOwnProperty(prop)){\n            group[prop] = [];\n        }\n        for(var j=0; j<Object.keys(msg.payload.subModels[i].idMap).length; j++){\n            group[prop].push(msg.payload.subModels[i].idMap[Object.keys(msg.payload.subModels[i].idMap)[j]]);\n        }\n    }\n}catch(error){\n    node.error(\"This is not federation\", msg);\n    return;\n}\n\nmsg.payload = group;\n\nreturn msg;","outputs":1,"noerr":0,"x":1094.8541259765625,"y":131.10415649414062,"wires":[["7ed28e02.dacb"]]},{"id":"7ed28e02.dacb","type":"split","z":"719f792d.07f598","name":"","splt":"\\n","spltType":"str","arraySplt":1,"arraySpltType":"len","stream":false,"addname":"topic","x":1091.25,"y":186.56253051757812,"wires":[["831b199a.f5f8f8"]]},{"id":"808c9128.b9c29","type":"comment","z":"719f792d.07f598","name":"group sub-models","info":"works for only federations\ninput from \"IDmap\" http request\noutput to \"create group\"","x":1088.75,"y":81.56253051757812,"wires":[]},{"id":"1582e6c5.6e0599","type":"ui_group","z":"","name":"Log In","tab":"b61df.0a600e22","order":1,"disp":true,"width":"6"},{"id":"b61df.0a600e22","type":"ui_tab","z":"","name":"Log In","icon":"dashboard","order":1}]
+[
+    {
+        "id": "101c2e55.fdccda",
+        "type": "tab",
+        "label": "Group Sub-models",
+        "disabled": false,
+        "info": "Groups sub-models in federation for colour overrides"
+    },
+    {
+        "id": "e1698042.4212e",
+        "type": "inject",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "x": 137.3541717529297,
+        "y": 354.8541564941406,
+        "wires": [
+            [
+                "acbe6fd1.cf153"
+            ]
+        ]
+    },
+    {
+        "id": "acbe6fd1.cf153",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "MAIN INPUTS",
+        "func": "// INPUTS\n\nteamspace = \"***\";  // make sure you have permissions to acces this teamspace\nmodelID = \"***\";    // make sure you have permissions to acces this model or federation\n\n\n// ignore the rest\n\ntry{\n    flow.set(\"teamspace\", teamspace);\n}catch(error){\n    node.error(\"Missing teamspace\", msg);\n    return;\n}\ntry{\n    flow.set(\"modelID\", modelID);\n}catch(error){\n    node.error(\"Missing modelID\", msg);\n    return;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 170.07066345214844,
+        "y": 196.92135620117188,
+        "wires": [
+            [
+                "5dc09178.9ff358"
+            ]
+        ]
+    },
+    {
+        "id": "b0c1d196.96dcc8",
+        "type": "http request",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "method": "POST",
+        "ret": "obj",
+        "url": "{{{topic}}}",
+        "tls": "",
+        "x": 469.85418701171875,
+        "y": 177.35415649414062,
+        "wires": [
+            [
+                "f9e7f369.329ba"
+            ]
+        ]
+    },
+    {
+        "id": "f9e7f369.329ba",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "cookie",
+        "func": "var cookies = msg.responseCookies;\n\ntry{\n    cookies[\"connect.sid\"];\n}catch(error){\n    node.error(\"Invalid username or password\", msg);\n    return;\n}\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": \"connect.sid=\" + cookies[\"connect.sid\"][\"value\"]\n};\n\nflow.set(\"cookie\",msg.headers[\"Cookie\"]);\n\nreturn msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 472.40985107421875,
+        "y": 229.1060791015625,
+        "wires": [
+            [
+                "f41df83e.93df68",
+                "7828c6b0.f5abe8"
+            ]
+        ]
+    },
+    {
+        "id": "5dc09178.9ff358",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "header",
+        "func": "try{\n    test = global.get(\"username\")[0];\n}catch(error){\n    node.error(\"Login error - login at http://localhost:1880/ui/#/0\", msg);\n    return;\n}\ntry{\n    test = global.get(\"password\")[0];\n}catch(error){\n    node.error(\"Login error - login at http://localhost:1880/ui/#/0\", msg);\n    return;\n}\n\n\nmsg.payload = {\n \"username\": global.get(\"username\"), \n \"password\": global.get(\"password\")\n};\n\nmsg.topic = \"https://api1.www.3drepo.io/api/login\";\n\nmsg.headers = {'content-type':'application/json'};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 471.8144226074219,
+        "y": 128.4920425415039,
+        "wires": [
+            [
+                "b0c1d196.96dcc8"
+            ]
+        ]
+    },
+    {
+        "id": "1a5d90cb.4bc2ff",
+        "type": "comment",
+        "z": "101c2e55.fdccda",
+        "name": "login",
+        "info": "",
+        "x": 473.72576904296875,
+        "y": 81.56598663330078,
+        "wires": []
+    },
+    {
+        "id": "2cc97ec.626ca82",
+        "type": "http request",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "method": "POST",
+        "ret": "obj",
+        "url": "{{{topic}}}",
+        "tls": "",
+        "x": 1091.1041259765625,
+        "y": 471.1041564941406,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "864212a2.8d93c8",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "group API call",
+        "func": "var cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.topic = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/groups\";\n\nvar group = {};\ngroup.name = msg.inputs.groupName ;\ngroup.description = msg.inputs.desc;\ngroup.author = global.get(\"username\"); \ngroup.createdAt = Date.now();\ngroup.color = msg.inputs.colour;\ngroup.objects = msg.payload;\n\nmsg.payload = group;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1089.8067626953125,
+        "y": 416.2953796386719,
+        "wires": [
+            [
+                "2cc97ec.626ca82"
+            ]
+        ]
+    },
+    {
+        "id": "884b8fcc.9d5a48",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "shared IDs",
+        "func": "function getKeyByValue(object, value) {\n    return Object.keys(object).find(key => object[key] === value);\n}\n\nvar sharedIDs = [];\nIDmap = flow.get(\"IDmap\");\ntry{\n    var test = IDmap.length;\n}catch(error){\n    node.error(\"Missing ID map\", msg);\n    return;\n}\n\nif (IDmap !== undefined) {\n    if (IDmap.subModels !== undefined) {        // if federation\n        for (var i = 0; i < msg.payload.length; i++) {\n            for (var j = 0; j < IDmap.subModels.length; j++) {\n                var key = getKeyByValue(IDmap.subModels[j].idMap, msg.payload[i]);\n                if (key !== undefined) {\n                    sharedIDs.push(msg.payload[i]);\n                    break;\n                }\n            }\n        }\n    } else {\n        for (var i = 0; i < msg.payload.length; i++) {\n            var key = getKeyByValue(IDmap.idMap, msg.payload[i]);\n            sharedIDs.push(msg.payload[i]);\n        }\n    }\n}\n\nmsg.payload = [{\n    \"account\": flow.get(\"teamspace\"),\n    \"model\": flow.get(\"modelID\"),\n    \"shared_ids\": sharedIDs,\n}];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1095.9058227539062,
+        "y": 357.3487854003906,
+        "wires": [
+            [
+                "864212a2.8d93c8"
+            ]
+        ]
+    },
+    {
+        "id": "b41a2116.783328",
+        "type": "comment",
+        "z": "101c2e55.fdccda",
+        "name": "create group",
+        "info": "",
+        "x": 1092.6142272949219,
+        "y": 256.55721282958984,
+        "wires": []
+    },
+    {
+        "id": "129c5e09.dc808a",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "INPUTS",
+        "func": "// INPUTS\n\ngroupName =  (msg.topic) ? msg.topic : \"Group\";\ndescription = msg.payload.length + \" from Node-RED\";\ncolour = [parseInt(Math.random()*255),parseInt(Math.random()*255),parseInt(Math.random()*255)];\n\n\n// ignore the rest\n\nmsg.inputs = {};\nmsg.inputs.groupName = groupName;\nmsg.inputs.desc = description;\nmsg.inputs.colour = colour;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1090.6278991699219,
+        "y": 310.9598617553711,
+        "wires": [
+            [
+                "884b8fcc.9d5a48"
+            ]
+        ]
+    },
+    {
+        "id": "f41df83e.93df68",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "revisions API",
+        "func": "cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/\" + \"revisions.json\"\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 469.85418701171875,
+        "y": 423.6041564941406,
+        "wires": [
+            [
+                "f5f15149.9098f"
+            ]
+        ]
+    },
+    {
+        "id": "f5f15149.9098f",
+        "type": "http request",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "url": "{{{payload}}}",
+        "tls": "",
+        "x": 469.8437805175781,
+        "y": 473.08330631256104,
+        "wires": [
+            [
+                "21fc3706.5b35c8"
+            ]
+        ]
+    },
+    {
+        "id": "21fc3706.5b35c8",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "OUTPUTS",
+        "func": "// all revisions\n\nflow.set(\"revisions\", msg.payload);\n\nreturn {payload:\"\"};\n\n\n// uncomment and specify subset of revisions below\n\n// flow.set(\"revisions\", msg.payload.slice(0,10));\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 480.85072326660156,
+        "y": 521.8263902664185,
+        "wires": [
+            [
+                "246447d4.5bd1"
+            ]
+        ]
+    },
+    {
+        "id": "ccc47eb3.28c4f",
+        "type": "comment",
+        "z": "101c2e55.fdccda",
+        "name": "revisions",
+        "info": "get all revisions of a model\n\nto choose only subset of revisions use:\nmsg.payload.slice(0,3)\n\nplace after login",
+        "x": 472.10418701171875,
+        "y": 377.07984924316406,
+        "wires": []
+    },
+    {
+        "id": "246447d4.5bd1",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "ID map call",
+        "func": "cookie = flow.get(\"cookie\");\n\ntry{\n    revID = flow.get(\"revisions\")[0]._id;\n}catch(error){\n    node.error(\"Missing revisions\", msg);\n    return;\n}\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/revision/\" + revID + \"/idmap.json\";\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 761.1041870117188,
+        "y": 118.60416412353516,
+        "wires": [
+            [
+                "e8bcc9ea.97f43"
+            ]
+        ]
+    },
+    {
+        "id": "e8bcc9ea.97f43",
+        "type": "http request",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "url": "{{{payload}}}",
+        "tls": "",
+        "x": 761.3776035308838,
+        "y": 172.1353416442871,
+        "wires": [
+            [
+                "bd9d6429.d23ec8",
+                "bc8156b4.578bc"
+            ]
+        ]
+    },
+    {
+        "id": "df74f5f8.5e2b1",
+        "type": "comment",
+        "z": "101c2e55.fdccda",
+        "name": "ID map",
+        "info": "",
+        "x": 758.010721206665,
+        "y": 72.75756454467773,
+        "wires": []
+    },
+    {
+        "id": "bd9d6429.d23ec8",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "set ID map",
+        "func": "flow.set(\"IDmap\", msg.payload);",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 756.760721206665,
+        "y": 226.42409896850586,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d82c3d8f.9fc068",
+        "type": "comment",
+        "z": "101c2e55.fdccda",
+        "name": "how to",
+        "info": "set your teamspace and model ID of Lego_House_Federation in MAIN INPUTS\ndeploy\nopen or reload Lego_House_Federation in 3D Repo, see the results in Groups card",
+        "x": 148.4583282470703,
+        "y": 101.8124771118164,
+        "wires": []
+    },
+    {
+        "id": "38a4e6e4.114d02",
+        "type": "ui_text_input",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "label": "Username",
+        "group": "8238462e.ba53c8",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "mode": "text",
+        "delay": "20",
+        "topic": "",
+        "x": 158.6042022705078,
+        "y": 542.3541946411133,
+        "wires": [
+            [
+                "3d8138c4.610788"
+            ]
+        ]
+    },
+    {
+        "id": "7259c2b.1dd4fbc",
+        "type": "ui_text_input",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "label": "Password",
+        "group": "8238462e.ba53c8",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "mode": "password",
+        "delay": "20",
+        "topic": "",
+        "x": 157.6318817138672,
+        "y": 628.7474670410156,
+        "wires": [
+            [
+                "21dda3b3.00ee04"
+            ]
+        ]
+    },
+    {
+        "id": "3d8138c4.610788",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "username",
+        "func": "global.set(\"username\",msg.payload);",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 162.3541717529297,
+        "y": 586.3863143920898,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "21dda3b3.00ee04",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "password",
+        "func": "global.set(\"password\",msg.payload);\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 155.6918487548828,
+        "y": 670.4054565429688,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "373fde64.a78072",
+        "type": "comment",
+        "z": "101c2e55.fdccda",
+        "name": "login details",
+        "info": "input your login details in dashboard at\n\nhttp://localhost:1880/ui/#/0\n\nset as global variable hence use only once for multiple flows",
+        "x": 154.27085876464844,
+        "y": 491.98380279541016,
+        "wires": []
+    },
+    {
+        "id": "b92aaee4.197b78",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "set flow variables",
+        "func": "if(msg.payload.subModels){\n    flow.set(\"subModels\", msg.payload.subModels);\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 754.8541870117188,
+        "y": 518.6041870117188,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "baa9349e.beecd",
+        "type": "http request",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "url": "{{{payload}}}",
+        "tls": "",
+        "x": 757.3561401367188,
+        "y": 469.7977294921875,
+        "wires": [
+            [
+                "b92aaee4.197b78"
+            ]
+        ]
+    },
+    {
+        "id": "7828c6b0.f5abe8",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "model settings",
+        "func": "cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n    \"content-type\":\"application/json\",\n    \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \".json\";\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 754.8605346679688,
+        "y": 422.35638427734375,
+        "wires": [
+            [
+                "baa9349e.beecd"
+            ]
+        ]
+    },
+    {
+        "id": "6d3db581.ab27dc",
+        "type": "comment",
+        "z": "101c2e55.fdccda",
+        "name": "settings",
+        "info": "",
+        "x": 757.2078552246094,
+        "y": 375.2945556640625,
+        "wires": []
+    },
+    {
+        "id": "bc8156b4.578bc",
+        "type": "function",
+        "z": "101c2e55.fdccda",
+        "name": "group by submodel",
+        "func": "var group = {};\nvar subModels = flow.get(\"subModels\")\n\ntry{\n    for(var i=0; i<msg.payload.subModels.length; i++){\n        for(var j=0; j<subModels.length; j++){\n            if(msg.payload.subModels[i].model === subModels[j].model){\n                var prop = subModels[j].name;\n            }\n        }\n        if(!group.hasOwnProperty(prop)){\n            group[prop] = [];\n        }\n        for(var j=0; j<Object.keys(msg.payload.subModels[i].idMap).length; j++){\n            group[prop].push(msg.payload.subModels[i].idMap[Object.keys(msg.payload.subModels[i].idMap)[j]]);\n        }\n    }\n}catch(error){\n    node.error(\"This is not federation\", msg);\n    return;\n}\n\nmsg.payload = group;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1094.8541259765625,
+        "y": 131.10415649414062,
+        "wires": [
+            [
+                "11257a19.3ec6e6"
+            ]
+        ]
+    },
+    {
+        "id": "11257a19.3ec6e6",
+        "type": "split",
+        "z": "101c2e55.fdccda",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "topic",
+        "x": 1091.25,
+        "y": 186.56253051757812,
+        "wires": [
+            [
+                "129c5e09.dc808a"
+            ]
+        ]
+    },
+    {
+        "id": "fddd28f0.0e162",
+        "type": "comment",
+        "z": "101c2e55.fdccda",
+        "name": "group sub-models",
+        "info": "works for only federations\ninput from \"IDmap\" http request\noutput to \"create group\"",
+        "x": 1088.75,
+        "y": 81.56253051757812,
+        "wires": []
+    },
+    {
+        "id": "8238462e.ba53c8",
+        "type": "ui_group",
+        "z": "",
+        "name": "Log In",
+        "tab": "7cbb09ec.981a9",
+        "order": 1,
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "7cbb09ec.981a9",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Log In",
+        "icon": "dashboard",
+        "order": 1
+    }
+]
