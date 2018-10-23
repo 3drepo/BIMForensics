@@ -1,0 +1,821 @@
+[
+    {
+        "id": "fa569d45.b7c938",
+        "type": "tab",
+        "label": "SafetiBase Report",
+        "disabled": false,
+        "info": "Dashboard to track risk resolution progress"
+    },
+    {
+        "id": "790ec72.9cb2bb8",
+        "type": "inject",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "x": 153.6041717529297,
+        "y": 343.6041564941406,
+        "wires": [
+            [
+                "a96de6d1.274e08"
+            ]
+        ]
+    },
+    {
+        "id": "a96de6d1.274e08",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "MAIN INPUTS",
+        "func": "// INPUTS\n\nteamspace = \"***\";  // make sure you have permissions to acces this teamspace\nmodelID = \"***\";    // make sure you have permissions to acces this model or federation\n\n\n// ignore the rest\n\ntry{\n    flow.set(\"teamspace\", teamspace);\n}catch(error){\n    node.error(\"Missing teamspace\", msg);\n    return;\n}\ntry{\n    flow.set(\"modelID\", modelID);\n}catch(error){\n    node.error(\"Missing modelID\", msg);\n    return;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 186.32066345214844,
+        "y": 185.67135620117188,
+        "wires": [
+            [
+                "fad23753.600678"
+            ]
+        ]
+    },
+    {
+        "id": "ebf02462.2a4da8",
+        "type": "http request",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "method": "POST",
+        "ret": "obj",
+        "url": "{{{topic}}}",
+        "tls": "",
+        "x": 486.10418701171875,
+        "y": 166.10415649414062,
+        "wires": [
+            [
+                "bb3968f9.99dac8"
+            ]
+        ]
+    },
+    {
+        "id": "bb3968f9.99dac8",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "cookie",
+        "func": "var cookies = msg.responseCookies;\n\ntry{\n    cookies[\"connect.sid\"];\n}catch(error){\n    node.error(\"Invalid username or password\", msg);\n    return;\n}\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": \"connect.sid=\" + cookies[\"connect.sid\"][\"value\"]\n};\n\nflow.set(\"cookie\",msg.headers[\"Cookie\"]);\n\nreturn msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 488.65985107421875,
+        "y": 217.8560791015625,
+        "wires": [
+            [
+                "add1c6b6.86457"
+            ]
+        ]
+    },
+    {
+        "id": "fad23753.600678",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "header",
+        "func": "try{\n    test = global.get(\"username\")[0];\n}catch(error){\n    node.error(\"Login error - login at http://localhost:1880/ui/#/0\", msg);\n    return;\n}\ntry{\n    test = global.get(\"password\")[0];\n}catch(error){\n    node.error(\"Login error - login at http://localhost:1880/ui/#/0\", msg);\n    return;\n}\n\n\nmsg.payload = {\n \"username\": global.get(\"username\"), \n \"password\": global.get(\"password\")\n};\n\nmsg.topic = \"https://api1.www.3drepo.io/api/login\";\n\nmsg.headers = {'content-type':'application/json'};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 488.0644226074219,
+        "y": 117.2420425415039,
+        "wires": [
+            [
+                "ebf02462.2a4da8"
+            ]
+        ]
+    },
+    {
+        "id": "c17047aa.9b565",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "login",
+        "info": "",
+        "x": 489.97576904296875,
+        "y": 70.31598663330078,
+        "wires": []
+    },
+    {
+        "id": "9cc08a7c.5f7a88",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "how to",
+        "info": "log in at http://localhost:1880/ui/#/0 or http://yourVPS:1880/ui/#/0\nset your teamspace and model ID of Lego_House_Federation in MAIN INPUTS\ndeploy\ngo to http://localhost:1880/ui/#/1 or http://youtVPS:1880/ui/#/1 to see the results",
+        "x": 164.7083282470703,
+        "y": 90.5624771118164,
+        "wires": []
+    },
+    {
+        "id": "cf235dad.b2fa28",
+        "type": "ui_text_input",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "label": "Username",
+        "group": "ace3bad5.c730a8",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "mode": "text",
+        "delay": "20",
+        "topic": "",
+        "x": 174.8542022705078,
+        "y": 531.1041946411133,
+        "wires": [
+            [
+                "ff2a00e0.1962d8"
+            ]
+        ]
+    },
+    {
+        "id": "77397a69.2d57fc",
+        "type": "ui_text_input",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "label": "Password",
+        "group": "ace3bad5.c730a8",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "mode": "password",
+        "delay": "20",
+        "topic": "",
+        "x": 173.8818817138672,
+        "y": 617.4974670410156,
+        "wires": [
+            [
+                "51515cfe.d0971c"
+            ]
+        ]
+    },
+    {
+        "id": "ff2a00e0.1962d8",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "username",
+        "func": "global.set(\"username\",msg.payload);",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 178.6041717529297,
+        "y": 575.1363143920898,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "51515cfe.d0971c",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "password",
+        "func": "global.set(\"password\",msg.payload);\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 171.9418487548828,
+        "y": 659.1554565429688,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e1d08cff.603aa8",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "login details",
+        "info": "input your login details in dashboard at\n\nhttp://localhost:1880/ui/#/0\n\nset as global variable hence use only once for multiple flows",
+        "x": 170.52085876464844,
+        "y": 480.73380279541016,
+        "wires": []
+    },
+    {
+        "id": "11144ea6.635201",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "get risks",
+        "info": "",
+        "x": 752.2083740234375,
+        "y": 65.5624771118164,
+        "wires": []
+    },
+    {
+        "id": "add1c6b6.86457",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "risks API",
+        "func": "cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/\" + \"risks.json\"\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 729.854248046875,
+        "y": 122.35414123535156,
+        "wires": [
+            [
+                "f16f6a04.66bcb8"
+            ]
+        ]
+    },
+    {
+        "id": "f16f6a04.66bcb8",
+        "type": "http request",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "url": "{{{payload}}}",
+        "tls": "",
+        "x": 749.8438415527344,
+        "y": 171.83329105377197,
+        "wires": [
+            [
+                "a53eea12.385db"
+            ]
+        ]
+    },
+    {
+        "id": "eaa0089b.c0c128",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "simple counter",
+        "info": "takes filter output, one or multiple revisions\n\nreturns quantities by metadata property",
+        "x": 1035.9815673828125,
+        "y": 64.45372009277344,
+        "wires": []
+    },
+    {
+        "id": "700c5b0.2420ca4",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "format",
+        "func": "var data = [];\nvar labels = [];\nvar series = [];\nvar m = {};\n\nfor(var i=0; i<msg.payload.length; i++){\n    var keys = Object.keys(msg.payload[i]);\n    // keys.sort();\n    for(var j=0; j<keys.length; j++){\n        if(keys[j] === \"\"){\n            labels.push(msg.payload[i][keys[j]] + \" unmitigated\");\n        }else{\n            labels.push(msg.payload[i][keys[j]] + \" \" + keys[j]);\n        }\n        \n        data.push(msg.payload[i][keys[j]]);\n    }\n}\n\nm.labels = labels;\nm.series = [\"Count\"];\nm.data = [data];\nmsg.payload = [m];\n\nreturn msg;",
+        "outputs": "1",
+        "noerr": 0,
+        "x": 1043.86474609375,
+        "y": 235.7394561767578,
+        "wires": [
+            [
+                "fbfd7253.60b67"
+            ]
+        ]
+    },
+    {
+        "id": "cda245b0.05f07",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "count by property",
+        "func": "function sort(object){\n    if (typeof object != \"object\" || object instanceof Array) // Not to sort the array\n        return object;\n    var keys = Object.keys(object);\n    keys.sort();\n    var newObject = {};\n    for (var i = 0; i < keys.length; i++){\n        newObject[keys[i]] = sort(object[keys[i]])\n    }\n    return newObject;\n}\n\ncounter = {\n    \"\": 0,\n    \"proposed\": 0,\n    \"agreed_partial\": 0,\n    \"agreed_fully\": 0,\n    \"rejected\":0\n};\n\nfor(var i=0; i<msg.payload.length; i++){\n    var prop = String(msg.payload[i][msg.inputs.property]);\n    if(counter.hasOwnProperty(prop)){\n        counter[prop] += 1;\n    }else{\n        counter[prop] = 1;\n    }\n}\n\n// sorted = sort(counter);\n// msg.payload = [sorted];\nmsg.payload = [counter];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1041.517333984375,
+        "y": 171.2394256591797,
+        "wires": [
+            [
+                "700c5b0.2420ca4"
+            ]
+        ]
+    },
+    {
+        "id": "5e7cc1ee.884",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "INPUTS",
+        "func": "// INPUTS\n\nproperty = \"mitigation_status\";\n\n\n// ignore the rest\n\nmsg.inputs = {};\nmsg.inputs.property = property;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1043.4608154296875,
+        "y": 116.93290710449219,
+        "wires": [
+            [
+                "cda245b0.05f07"
+            ]
+        ]
+    },
+    {
+        "id": "fbfd7253.60b67",
+        "type": "ui_chart",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "group": "5eea1d1c.29a3ac",
+        "order": 2,
+        "width": "6",
+        "height": "4",
+        "label": "By Status",
+        "chartType": "pie",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": "50",
+        "useOneColor": false,
+        "colors": [
+            "#3cb335",
+            "#baf3b1",
+            "#fafa7e",
+            "#ffac84",
+            "#e33e3e",
+            "#f198d0",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "x": 1221.3785400390625,
+        "y": 240.12835693359375,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "a53eea12.385db",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "in current",
+        "func": "// filter only risks from current model/federation\n\nresult = [];\n\nfor(var i=0; i<msg.payload.length; i++ ){\n    if(msg.payload[i].model === flow.get(\"modelID\")){\n        result.push(msg.payload[i]);\n    }\n}\n\nmsg.payload = result;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 743.9074096679688,
+        "y": 222.101806640625,
+        "wires": [
+            [
+                "5e7cc1ee.884",
+                "daee06fc.08742",
+                "a2316337.bceda8",
+                "287e7f78.f28688",
+                "6c12c304.b44b74",
+                "99576f4e.c2c32"
+            ]
+        ]
+    },
+    {
+        "id": "74d7dc32.5015a4",
+        "type": "ui_text",
+        "z": "fa569d45.b7c938",
+        "group": "85710e3b.b33138",
+        "order": 2,
+        "width": "0",
+        "height": "0",
+        "name": "# high level risks",
+        "label": "Number of high level risks",
+        "format": "{{msg.payload.length}}",
+        "layout": "row-left",
+        "x": 1259.70361328125,
+        "y": 670.0926513671875,
+        "wires": []
+    },
+    {
+        "id": "daee06fc.08742",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "by level of risk",
+        "func": "counter = {};\nvar before = [];\nvar after = [];\n\nfor(var i=0; i<msg.payload.length; i++){\n    if(msg.payload[i].mitigation_status != \"agreed_fully\"){\n        var level = msg.payload[i].level_of_risk;\n        if(level > 2 || msg.payload[i].level_of_risk === undefined){\n            before.push(msg.payload[i])\n        }else{\n            after.push(msg.payload[i])\n        }\n    }\n}\n\nreturn [{payload:before}, {payload:after}];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 1055.596923828125,
+        "y": 666.2101440429688,
+        "wires": [
+            [
+                "7f5d7713.7b3e6",
+                "74d7dc32.5015a4"
+            ],
+            [
+                "8a34cb85.9e3b5"
+            ]
+        ],
+        "outputLabels": [
+            "before",
+            "after"
+        ]
+    },
+    {
+        "id": "810214ce.07b52",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "risks by due date",
+        "info": "",
+        "x": 1043.7684326171875,
+        "y": 566.3333129882812,
+        "wires": []
+    },
+    {
+        "id": "287e7f78.f28688",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "count by properties",
+        "func": "var assigned = flow.get(\"assigned\");\nvar level = flow.get(\"level\");\nvar levelLabel = flow.get(\"levelLabel\");\n\ncounter = {};\n\nfor(var i=0; i<msg.payload.length; i++){\n    if(msg.payload[i].mitigation_status !== \"agreed_fully\"){\n        for(var j=0; j<assigned.length; j++){\n            for(var k=0; k<level.length; k++){\n                var prop = String(levelLabel[k] + \"_\" + assigned[j]);\n                if(!counter.hasOwnProperty(prop)){\n                    counter[prop] = 0;\n                }\n                if(msg.payload[i].assigned_roles[0] === assigned[j] && msg.payload[i].level_of_risk === level[k]){\n                    counter[prop] += 1;\n                }\n            }\n        }\n    }\n}\n\nmsg.payload = counter;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 533.0647583007812,
+        "y": 493.20367431640625,
+        "wires": [
+            [
+                "cf50df6.990fa2"
+            ]
+        ]
+    },
+    {
+        "id": "cf50df6.990fa2",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "sort & format",
+        "func": "var keys = Object.keys(msg.payload);\nvar assigned = flow.get(\"assigned\");\nvar m = {};\nvar data = [];\nvar dataFormated = [];\n\nkeys.sort();\n\nfor(var i in keys){\n    data.push(msg.payload[keys[i]])\n}\n\nfor(var i=0; i<data.length; i+=assigned.length){\n    dataFormated.push(data.slice(i,i+assigned.length));\n}\n\n// assigned.pop();\n// assigned.push(\"unassigned\");\n\nvar l = 10;\nvar assignFormated = [];\n\nfor(var i=0; i<assigned.length; i++){\n    if(assigned[i].length > l){\n        assignFormated.push(assigned[i].substring(0,l) + \"...\");\n    }else{\n        assignFormated.push(assigned[i])\n    }\n}\n    \nm.labels = assignFormated;\nm.series = flow.get(\"levelLabel\");\nm.data = dataFormated;\nreturn {payload:[m]};",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 540.6861572265625,
+        "y": 547.2645263671875,
+        "wires": [
+            [
+                "a02afeab.a91178"
+            ]
+        ]
+    },
+    {
+        "id": "a02afeab.a91178",
+        "type": "ui_chart",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "group": "97ee058e.46b578",
+        "order": 1,
+        "width": "16",
+        "height": "4",
+        "label": "By Owner & Level",
+        "chartType": "bar",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "colors": [
+            "#3cb335",
+            "#baf3b1",
+            "#fafa7e",
+            "#ffac84",
+            "#e33e3e",
+            "#ff80ff",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "x": 772.7645874023438,
+        "y": 547.116455078125,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "5c18c8a2.50a718",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "simple counter",
+        "info": "takes filter output, one or multiple revisions\n\nreturns quantities by metadata property",
+        "x": 1048.3426513671875,
+        "y": 300.98155212402344,
+        "wires": []
+    },
+    {
+        "id": "6e6cbaa4.3d14ac",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "format",
+        "func": "var data = [];\nvar labels = [];\nvar series = [];\nvar m = {};\n\nfor(var i=0; i<msg.payload.length; i++){\n    var keys = Object.keys(msg.payload[i]);\n    // keys.sort();\n    for(var j=0; j<keys.length; j++){\n        labels.push(msg.payload[i][keys[j]] + \" \" + keys[j]);\n        data.push(msg.payload[i][keys[j]]);\n    }\n}\n\nm.labels = labels;\nm.series = [\"Count\"];\nm.data = [data];\nmsg.payload = [m];\n\nreturn msg;",
+        "outputs": "1",
+        "noerr": 0,
+        "x": 1056.225830078125,
+        "y": 472.2672882080078,
+        "wires": [
+            [
+                "97a55b05.a05108"
+            ]
+        ]
+    },
+    {
+        "id": "e28c52ce.8b9db8",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "count by property",
+        "func": "function sort(object){\n    if (typeof object != \"object\" || object instanceof Array) // Not to sort the array\n        return object;\n    var keys = Object.keys(object);\n    keys.sort();\n    var newObject = {};\n    for (var i = 0; i < keys.length; i++){\n        newObject[keys[i]] = sort(object[keys[i]])\n    }\n    return newObject;\n}\n\ncounter = {\n    0: 0,\n    1: 0,\n    2: 0,\n    3: 0,\n    4: 0\n};\n\nfor(var i=0; i<msg.payload.length; i++){\n    if(msg.payload[i].mitigation_status !== \"agreed_fully\"){\n        var prop = String(msg.payload[i][msg.inputs.property]);\n        if(counter.hasOwnProperty(prop)){\n            counter[prop] += 1;\n        }else{\n            counter[prop] = 1;\n        }\n    }\n}\n\nvar keys = Object.keys(counter);\nvar newCounter = {};\nvar level = flow.get(\"levelLabel\");\n\nfor(var i=0; i<keys.length; i++){\n    newCounter[level[i]] = counter[keys[i]];\n}\n\n// sorted = sort(counter);\n// msg.payload = [sorted];\nmsg.payload = [newCounter];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1053.87841796875,
+        "y": 407.7672576904297,
+        "wires": [
+            [
+                "6e6cbaa4.3d14ac"
+            ]
+        ]
+    },
+    {
+        "id": "a2316337.bceda8",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "INPUTS",
+        "func": "// INPUTS\n\nproperty = \"level_of_risk\";\n\n\n// ignore the rest\n\nmsg.inputs = {};\nmsg.inputs.property = property;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1055.8218994140625,
+        "y": 353.4607391357422,
+        "wires": [
+            [
+                "e28c52ce.8b9db8"
+            ]
+        ]
+    },
+    {
+        "id": "97a55b05.a05108",
+        "type": "ui_chart",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "group": "5eea1d1c.29a3ac",
+        "order": 1,
+        "width": "6",
+        "height": "4",
+        "label": "By Level",
+        "chartType": "pie",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": "50",
+        "useOneColor": false,
+        "colors": [
+            "#3cb335",
+            "#baf3b1",
+            "#fafa7e",
+            "#ffac84",
+            "#e33e3e",
+            "#ff80ff",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "x": 1233.7396240234375,
+        "y": 476.65618896484375,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "975bd2f9.2a0b88",
+        "type": "ui_template",
+        "z": "fa569d45.b7c938",
+        "group": "85710e3b.b33138",
+        "name": "High level risks",
+        "order": 1,
+        "width": "22",
+        "height": "2",
+        "format": "<style>\n        td {\n            height: 30px;\n        }\n        \n    a:link {\n    color: black;\n    background-color: transparent;\n    text-decoration: none;\n}\na:visited {\n    color: black;\n    background-color: transparent;\n    text-decoration: none;\n}\na:hover {\n    color: gray;\n    background-color: transparent;\n    text-decoration: underline;\n}\n</style>\n\n<table style=\"width:100%\">\n        <tr ng-repeat=\"x in msg.payload\">\n            <td width=\"30%\"><b><a href=\"{{x.link}}\" target=\"_blank\">{{x.name}}</a></b></td>\n            <td width=\"10%\">{{x.level_of_risk}}</td>\n            <td width=\"10%\">{{x.mitigation_status}}</td>\n            <td width=\"20%\">{{x.category}}</td>\n            <td width=\"20%\">{{x.assign}}</td>\n            <td width=\"10%\">{{x.date}}</td>\n\n        </tr>\n</table>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "templateScope": "local",
+        "x": 1224.036865234375,
+        "y": 618.7592163085938,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7f5d7713.7b3e6",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "format",
+        "func": "var result = []\n\nfor(var i=0; i<msg.payload.length; i++){\n    if (msg.payload[i] !== undefined) {\n        risk = {};\n        risk.name = msg.payload[i].name;\n        var convDate = new Date(msg.payload[i].created).toString().split(\" \");\n        var formDate = convDate[2] + \" \" + convDate[1];\n        risk.date = formDate;\n        risk.mitigation_status = msg.payload[i].mitigation_status;\n        risk.level_of_risk = flow.get(\"levelLabel\")[msg.payload[i].level_of_risk];\n        risk.category = msg.payload[i].category;\n        risk.assign = msg.payload[i].assigned_roles[0];\n        risk.link = \"https://www.3drepo.io/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/\" + \"risks\" + \"/\" + msg.payload[i]._id;\n        result.push(risk);\n    }\n}\n\nmsg.payload = result;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1057.640869140625,
+        "y": 617.6062622070312,
+        "wires": [
+            [
+                "975bd2f9.2a0b88"
+            ]
+        ]
+    },
+    {
+        "id": "6c12c304.b44b74",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "flow variables",
+        "func": "var owners = [];\nvar assigned = [];\npriority = [\"none\",\"low\",\"medium\",\"high\"];\npriorityLabel = [\"0_N\",\"1_L\",\"2_M\",\"3_H\"];\nstatus = [\"\",\"proposed\",\"agreed_partial\",\"agreed_fully\",\"rejected\"];\nstatusLabel = [\"0_U\",\"1_P\",\"2_AP\",\"3_AF\",\"4_R\"];\nlevel = [0,1,2,3,4];\nlevelLabel = [\"very low\",\"low\",\"moderate\",\"high\",\"very high\"];\n\nfor (var i=0; i<msg.payload.length; i++){\n    owners.push(msg.payload[i].owner);\n    if(msg.payload[i].assigned_roles[0] !== null){\n        assigned.push(msg.payload[i].assigned_roles[0]);\n    }\n}\n\nvar ownersSet = new Set(owners);\nowners = Array.from(ownersSet);\n\nvar assignedSet = new Set(assigned);\nassigned = Array.from(assignedSet);\n// assigned.unshift(\"unassigned\");\nassigned.sort();\n\nflow.set(\"owners\",owners);\nflow.set(\"assigned\",assigned);\nflow.set(\"priority\",priority);\nflow.set(\"priorityLabel\",priorityLabel);\nflow.set(\"status\",status);\nflow.set(\"statusLabel\",statusLabel);\nflow.set(\"level\", level);\nflow.set(\"levelLabel\", levelLabel);",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 720.7036743164062,
+        "y": 351.25921630859375,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8735571e.80c338",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "risks by assigned & priority",
+        "info": "",
+        "x": 530.8517456054688,
+        "y": 439.38885498046875,
+        "wires": []
+    },
+    {
+        "id": "99576f4e.c2c32",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "count by properties",
+        "func": "var assigned = flow.get(\"assigned\");\nvar status = flow.get(\"status\");\nvar statusLabel = flow.get(\"statusLabel\");\n\ncounter = {};\n\nfor(var i=0; i<msg.payload.length; i++){\n    // if(msg.payload[i].mitigation_status !== \"agreed_fully\"){\n        for(var j=0; j<assigned.length; j++){\n            for(var k=0; k<status.length; k++){\n                var prop = String(statusLabel[k] + \"_\" + assigned[j]);\n                if(!counter.hasOwnProperty(prop)){\n                    counter[prop] = 0;\n                }\n                if(msg.payload[i].assigned_roles[0] === assigned[j] && msg.payload[i].mitigation_status === status[k]){\n                    counter[prop] += 1;\n                }\n            }\n        }\n    // }\n}\n\nmsg.payload = counter;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 527.6480712890625,
+        "y": 698.75927734375,
+        "wires": [
+            [
+                "a0a3f121.72f568"
+            ]
+        ]
+    },
+    {
+        "id": "a0a3f121.72f568",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "sort & format",
+        "func": "var keys = Object.keys(msg.payload);\nvar assigned = flow.get(\"assigned\");\nvar m = {};\nvar data = [];\nvar dataFormated = [];\n\nkeys.sort();\n\nfor(var i in keys){\n    data.push(msg.payload[keys[i]])\n}\n\nfor(var i=0; i<data.length; i+=assigned.length){\n    dataFormated.push(data.slice(i,i+assigned.length));\n}\n\nvar status = flow.get(\"status\");\nstatus.shift();\nstatus.unshift(\"unmittigated\");\n\nvar l = 10;\nvar assignFormated = [];\n\nfor(var i=0; i<assigned.length; i++){\n    if(assigned[i].length > l){\n        assignFormated.push(assigned[i].substring(0,l) + \"...\");\n    }else{\n        assignFormated.push(assigned[i])\n    }\n}\n    \nm.labels = assignFormated;\nm.series = flow.get(\"status\");\nm.data = dataFormated;\nreturn {payload:[m]};",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 535.2694702148438,
+        "y": 752.8201293945312,
+        "wires": [
+            [
+                "a03fe3b5.cbffe"
+            ]
+        ]
+    },
+    {
+        "id": "a03fe3b5.cbffe",
+        "type": "ui_chart",
+        "z": "fa569d45.b7c938",
+        "name": "",
+        "group": "97ee058e.46b578",
+        "order": 1,
+        "width": "16",
+        "height": "4",
+        "label": "By Owner & Status",
+        "chartType": "bar",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "colors": [
+            "#3cb335",
+            "#baf3b1",
+            "#fafa7e",
+            "#ffac84",
+            "#e33e3e",
+            "#eb92ed",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "x": 767.347900390625,
+        "y": 752.6720581054688,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "72d68de9.f6af8c",
+        "type": "comment",
+        "z": "fa569d45.b7c938",
+        "name": "risks by assigned & status",
+        "info": "",
+        "x": 525.43505859375,
+        "y": 644.9444580078125,
+        "wires": []
+    },
+    {
+        "id": "f5216e3b.eaa7e",
+        "type": "ui_template",
+        "z": "fa569d45.b7c938",
+        "group": "85710e3b.b33138",
+        "name": "Low level risks",
+        "order": 3,
+        "width": "22",
+        "height": "2",
+        "format": "<style>\n        td {\n            height: 30px;\n        }\n        \n    a:link {\n    color: black;\n    background-color: transparent;\n    text-decoration: none;\n}\na:visited {\n    color: black;\n    background-color: transparent;\n    text-decoration: none;\n}\na:hover {\n    color: gray;\n    background-color: transparent;\n    text-decoration: underline;\n}\n</style>\n\n<table style=\"width:100%\">\n        <tr ng-repeat=\"x in msg.payload\">\n            <td width=\"30%\"><b><a href=\"{{x.link}}\" target=\"_blank\">{{x.name}}</a></b></td>\n            <td width=\"10%\">{{x.level_of_risk}}</td>\n            <td width=\"10%\">{{x.mitigation_status}}</td>\n            <td width=\"20%\">{{x.category}}</td>\n            <td width=\"20%\">{{x.assign}}</td>\n            <td width=\"10%\">{{x.date}}</td>\n\n        </tr>\n</table>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "templateScope": "local",
+        "x": 1237.6484375,
+        "y": 716.537109375,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8a34cb85.9e3b5",
+        "type": "function",
+        "z": "fa569d45.b7c938",
+        "name": "format",
+        "func": "var result = []\n\nfor(var i=0; i<msg.payload.length; i++){\n    if (msg.payload[i] !== undefined) {\n        risk = {};\n        risk.name = msg.payload[i].name;\n        var convDate = new Date(msg.payload[i].created).toString().split(\" \");\n        var formDate = convDate[2] + \" \" + convDate[1];\n        risk.date = formDate;\n        risk.mitigation_status = msg.payload[i].mitigation_status;\n        risk.level_of_risk = flow.get(\"levelLabel\")[msg.payload[i].level_of_risk];\n        risk.category = msg.payload[i].category;\n        risk.assign = msg.payload[i].assigned_roles[0];\n        risk.link = \"https://www.3drepo.io/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/\" + \"risks\" + \"/\" + msg.payload[i]._id;\n        result.push(risk);\n    }\n}\n\nmsg.payload = result;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1058.75927734375,
+        "y": 715.4259643554688,
+        "wires": [
+            [
+                "f5216e3b.eaa7e"
+            ]
+        ]
+    },
+    {
+        "id": "ace3bad5.c730a8",
+        "type": "ui_group",
+        "z": "",
+        "name": "Log In",
+        "tab": "afa02cee.83a1b8",
+        "order": 1,
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "5eea1d1c.29a3ac",
+        "type": "ui_group",
+        "z": "",
+        "name": "Risks",
+        "tab": "2ee02235.7998e6",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "85710e3b.b33138",
+        "type": "ui_group",
+        "z": "",
+        "name": "By Risk Level",
+        "tab": "2ee02235.7998e6",
+        "order": 3,
+        "disp": true,
+        "width": "22",
+        "collapse": false
+    },
+    {
+        "id": "97ee058e.46b578",
+        "type": "ui_group",
+        "z": "",
+        "name": "Number of Risks",
+        "tab": "2ee02235.7998e6",
+        "order": 2,
+        "disp": true,
+        "width": "16",
+        "collapse": false
+    },
+    {
+        "id": "afa02cee.83a1b8",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Log In",
+        "icon": "dashboard",
+        "order": 2
+    },
+    {
+        "id": "2ee02235.7998e6",
+        "type": "ui_tab",
+        "z": "",
+        "name": "SafetiBase Report",
+        "icon": "dashboard",
+        "order": 1
+    }
+]
