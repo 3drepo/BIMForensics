@@ -1,15 +1,15 @@
 [
     {
-        "id": "36c474d6.bc486c",
+        "id": "5a7b2d60.bb1d44",
         "type": "tab",
         "label": "Group By Property",
         "disabled": false,
         "info": "Group objects by metadata property"
     },
     {
-        "id": "4a5c151d.388a9c",
+        "id": "6c99e002.ddcdb",
         "type": "inject",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "topic": "",
         "payload": "",
@@ -21,14 +21,14 @@
         "y": 342.3541564941406,
         "wires": [
             [
-                "46209cdb.54d5fc"
+                "3ca618a9.54644"
             ]
         ]
     },
     {
-        "id": "46209cdb.54d5fc",
+        "id": "3ca618a9.54644",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "MAIN INPUTS",
         "func": "// INPUTS\n\nteamspace = \"***\";  // make sure you have permissions to acces this teamspace\nmodelID = \"***\";    // make sure you have permissions to acces this model or federation\n\n\n// ignore the rest\n\ntry{\n    flow.set(\"teamspace\", teamspace);\n}catch(error){\n    node.error(\"Missing teamspace\", msg);\n    return;\n}\ntry{\n    flow.set(\"modelID\", modelID);\n}catch(error){\n    node.error(\"Missing modelID\", msg);\n    return;\n}\n\nreturn msg;",
         "outputs": 1,
@@ -37,14 +37,14 @@
         "y": 184.42135620117188,
         "wires": [
             [
-                "38a7a7a1.7cd8d8"
+                "7748da2.a1d66a4"
             ]
         ]
     },
     {
-        "id": "6ae0cc9f.696dcc",
+        "id": "ce2ad495.c4e46",
         "type": "http request",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "method": "POST",
         "ret": "obj",
@@ -54,14 +54,14 @@
         "y": 164.85415649414062,
         "wires": [
             [
-                "d0e6817a.b3e13"
+                "9d634b05.044c3"
             ]
         ]
     },
     {
-        "id": "d0e6817a.b3e13",
+        "id": "9d634b05.044c3",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "cookie",
         "func": "var cookies = msg.responseCookies;\n\ntry{\n    cookies[\"connect.sid\"];\n}catch(error){\n    node.error(\"Invalid username or password\", msg);\n    return;\n}\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": \"connect.sid=\" + cookies[\"connect.sid\"][\"value\"]\n};\n\nflow.set(\"cookie\",msg.headers[\"Cookie\"]);\n\nreturn msg;\n\n",
         "outputs": 1,
@@ -70,16 +70,16 @@
         "y": 216.6060791015625,
         "wires": [
             [
-                "7ab6d6db.0fe848",
-                "4e6c3a10.c26adc",
-                "e166805b.d5b6d"
+                "450996b3.8abfe8",
+                "aae68793.0e7d48",
+                "4d0da6f7.e74b8"
             ]
         ]
     },
     {
-        "id": "38a7a7a1.7cd8d8",
+        "id": "7748da2.a1d66a4",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "header",
         "func": "try{\n    test = global.get(\"username\")[0];\n}catch(error){\n    node.error(\"Login error - login at http://localhost:1880/ui/#/0\", msg);\n    return;\n}\ntry{\n    test = global.get(\"password\")[0];\n}catch(error){\n    node.error(\"Login error - login at http://localhost:1880/ui/#/0\", msg);\n    return;\n}\n\n\nmsg.payload = {\n \"username\": global.get(\"username\"), \n \"password\": global.get(\"password\")\n};\n\nmsg.topic = \"https://api1.www.3drepo.io/api/login\";\n\nmsg.headers = {'content-type':'application/json'};\n\nreturn msg;",
         "outputs": 1,
@@ -88,14 +88,14 @@
         "y": 115.9920425415039,
         "wires": [
             [
-                "6ae0cc9f.696dcc"
+                "ce2ad495.c4e46"
             ]
         ]
     },
     {
-        "id": "25e18752.f74e28",
+        "id": "e7724965.3be5",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "login",
         "info": "",
         "x": 477.47576904296875,
@@ -103,9 +103,9 @@
         "wires": []
     },
     {
-        "id": "19ec527c.c81396",
+        "id": "f03c286a.5974c",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "API call",
         "func": "cookie = flow.get(\"cookie\");\nvar calls = [];\n\nmsg.headers = {\n    \"content-type\": \"application/json\",\n    \"Cookie\": cookie\n};\n\nif(msg.inputs.allRev){\n    try{\n        var test = flow.get(\"revisions\").length;\n    }catch(error){\n        node.error(\"Missing revisions\", msg);\n        return;\n    }\n    for (var i = 0; i < flow.get(\"revisions\").length; i++) {\n        for (var prop in msg.inputs.filter) {\n            calls.push(\"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/revision/\" + flow.get(\"revisions\")[i]._id + \"/meta/findObjsWith/\" + prop + \".json\");\n        }\n    }\n}else{\n    for (var prop in msg.inputs.filter) {\n        calls.push(\"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/revision/master/head/meta/findObjsWith/\" + prop + \".json\");\n    }\n}\n\nmsg.payload = calls;\n\nreturn msg;",
         "outputs": "1",
@@ -114,14 +114,14 @@
         "y": 148.60413360595703,
         "wires": [
             [
-                "8cf73670.a517d"
+                "36718ba6.017df4"
             ]
         ]
     },
     {
-        "id": "8cf73670.a517d",
+        "id": "36718ba6.017df4",
         "type": "split",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "splt": "\\n",
         "spltType": "str",
@@ -133,14 +133,14 @@
         "y": 196.77680206298828,
         "wires": [
             [
-                "332399ee.b1d836"
+                "7c817ca5.ad6534"
             ]
         ]
     },
     {
-        "id": "332399ee.b1d836",
+        "id": "7c817ca5.ad6534",
         "type": "http request",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "method": "GET",
         "ret": "obj",
@@ -150,14 +150,14 @@
         "y": 248.74224090576172,
         "wires": [
             [
-                "df77469c.7b54e8"
+                "69ee35c0.20e79c"
             ]
         ]
     },
     {
-        "id": "df77469c.7b54e8",
+        "id": "69ee35c0.20e79c",
         "type": "join",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "mode": "auto",
         "build": "string",
@@ -173,14 +173,14 @@
         "y": 297.12520599365234,
         "wires": [
             [
-                "9b18bc1c.0b232"
+                "8606a972.b886"
             ]
         ]
     },
     {
-        "id": "b3baca23.5239",
+        "id": "d0e24d65.4290e8",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "merge",
         "func": "if(msg.inputs.allRev){\n    revisions = flow.get(\"revisions\");\n    merged = [];\n    \n    // partition API call results by revision\n    var rev = []\n    while (msg.payload.length > 0) {\n        rev.push(msg.payload.splice(0, Object.keys(msg.inputs.filter).length)); // this works\n    }\n\n    // get meta GUIDs, IFC GUIDs\n    for (var i = 0; i < rev.length; i++) {\n        merged[i] = [];\n        for (var j in rev[i][0][\"data\"]) {      // IfcGUID\n            for (var l = 1; l < rev[i].length; l++) {       // loop through filter\n                var property = Object.keys(msg.inputs.filter)[l];\n                var filter = msg.inputs.filter[Object.keys(msg.inputs.filter)[l]];\n                for (var k in rev[i][l][\"data\"]) {\n                    // if (rev[i][1][\"data\"][j] !== undefined && rev[i][0][\"data\"][j][\"_id\"] === rev[i][1][\"data\"][k][\"_id\"]) {\n                    if (rev[i][0][\"data\"][j][\"_id\"] === rev[i][l][\"data\"][k][\"_id\"]) {      // if meta IDs match create filtered object\n                        o = {};\n                        o.metaID = rev[i][0][\"data\"][j][\"_id\"];\n                        o.IFCGUID = rev[i][0][\"data\"][j][\"metadata\"][\"value\"];\n                        o.property = property;\n                        o.value = rev[i][l][\"data\"][k][\"metadata\"][\"value\"];\n                        o.timestamp = Date.parse(revisions[i].timestamp);\n                        o.parents = rev[i][0][\"data\"][j][\"parents\"];\n                        o.parents = rev[i][l][\"data\"][k][\"parents\"];        // ???\n                        merged[i].push(o)\n                    }\n                }\n            }\n        }\n    }\n    msg.payload = merged;\n    return msg;\n}else{\n    try{\n        var timestamp = Date.parse(flow.get(\"revisions\")[0].timestamp);\n    }catch(error){\n        node.error(\"Missing revisions\", msg);\n    return;\n    }\n    \n    merged = [];\n    \n    // partition API call results by revision\n    var rev = []\n    while (msg.payload.length > 0) {\n        rev.push(msg.payload.splice(0, Object.keys(msg.inputs.filter).length)); // this works\n    }\n    // node.send({payload:rev})\n    // get meta GUIDs, IFC GUIDs\n    for (var i = 0; i < rev.length; i++) {\n        merged[i] = [];\n        for (var j in rev[i][0][\"data\"]) {      // IfcGUID\n            for (var l = 1; l < rev[i].length; l++) {       // loop through filtered\n                var property = Object.keys(msg.inputs.filter)[l];\n                var filter = msg.inputs.filter[Object.keys(msg.inputs.filter)[l]];\n                for (var k in rev[i][l][\"data\"]) {\n                    var value = rev[i][l][\"data\"][k][\"metadata\"][\"value\"];\n                    \n                    // if (rev[i][1][\"data\"][j] !== undefined && rev[i][0][\"data\"][j][\"_id\"] === rev[i][1][\"data\"][k][\"_id\"]) {\n                    if (rev[i][0][\"data\"][j][\"_id\"] === rev[i][l][\"data\"][k][\"_id\"]) {      // if meta IDs match create filtered object\n                        \n                        if (filter.length === 0){\n                            o = {};\n                            o.metaID = rev[i][0][\"data\"][j][\"_id\"];\n                            o.IFCGUID = rev[i][0][\"data\"][j][\"metadata\"][\"value\"];\n                            o.property = property;\n                            o.value = value;\n                            o.timestamp = timestamp;\n                            o.parents = rev[i][0][\"data\"][j][\"parents\"];\n                            o.parents = rev[i][l][\"data\"][k][\"parents\"];        // ???\n                            merged[i].push(o)\n                        }else{\n                            if(filter[0] === true && value.search(filter[1]) > -1){\n                                o = {};\n                                o.metaID = rev[i][0][\"data\"][j][\"_id\"];\n                                o.IFCGUID = rev[i][0][\"data\"][j][\"metadata\"][\"value\"];\n                                o.property = property;\n                                o.value = value;\n                                o.timestamp = timestamp;\n                                o.parents = rev[i][0][\"data\"][j][\"parents\"];\n                                o.parents = rev[i][l][\"data\"][k][\"parents\"];        // ???\n                                merged[i].push(o);\n                            }else{\n                                // node.send({payload:value})\n                                for(var m=1; m<filter.length; m++){\n                                    if(filter[m] === value){\n                                    o = {};\n                                    o.metaID = rev[i][0][\"data\"][j][\"_id\"];\n                                    o.IFCGUID = rev[i][0][\"data\"][j][\"metadata\"][\"value\"];\n                                    o.property = property;\n                                    o.value = value;\n                                    o.timestamp = timestamp;\n                                    o.parents = rev[i][0][\"data\"][j][\"parents\"];\n                                    o.parents = rev[i][l][\"data\"][k][\"parents\"];        // ???\n                                    merged[i].push(o);\n                                    }\n                                }\n                            }\n                        }\n                    }\n                }\n            }\n        }\n    }\n    msg.payload = merged;\n    return msg;\n}\n\n",
         "outputs": 1,
@@ -189,16 +189,16 @@
         "y": 396.7420349121094,
         "wires": [
             [
-                "bc0f2437.d4e7e8",
-                "97dea5ea.40e4a",
-                "95d099fa.acdf58"
+                "dafb48fc.d1aad",
+                "23e65f99.f07078",
+                "bdcdddac.1db55"
             ]
         ]
     },
     {
-        "id": "202ff203.9a26b6",
+        "id": "7603276.c881b58",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "filter",
         "info": "keep Ifc GUID always as first item",
         "x": 765.4098205566406,
@@ -206,9 +206,9 @@
         "wires": []
     },
     {
-        "id": "9b18bc1c.0b232",
+        "id": "8606a972.b886",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "if fed (filters)",
         "func": "var o = [];\n\nfor (var i=0; i < msg.payload.length; i++) {\n    if (msg.payload[i] !== undefined) {\n        if (msg.payload[i].subModels !== undefined) {\n            var obj = {};\n            var temp = [];\n            for (var j = 0; j < msg.payload[i].subModels.length; j++) {\n                for (var k = 0; k < msg.payload[i].subModels[j].data.length; k++) {\n                    // merge data arrays as per API calls \n                    temp.push(msg.payload[i].subModels[j].data[k])\n                }\n            }\n            obj.data = temp;\n            o.push(obj);\n        } else {\n            return msg;\n        }\n    }\n}\n\nmsg.payload = o;\n\nreturn msg",
         "outputs": 1,
@@ -217,30 +217,30 @@
         "y": 346.6596374511719,
         "wires": [
             [
-                "b3baca23.5239"
+                "d0e24d65.4290e8"
             ]
         ]
     },
     {
-        "id": "7ab6d6db.0fe848",
+        "id": "450996b3.8abfe8",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "INPUTS",
-        "func": "// INPUTS:\n\nfilter = {\n    // IfcGUID is a default value, keep always as first item. Use Item:GUID for models uploaded with Navis plugin\n    \"IFC%20GUID\": [], \n    // add custom filters below\n    \"Zone%20Number\": []\n}\n\nallRevisions = false;\n\n\n// ignore the rest\n\nmsg.inputs = {};\nmsg.inputs.filter = filter;\nmsg.inputs.allRev = allRevisions;\n\nreturn msg;",
+        "func": "// INPUTS:\n\nfilter = {\n    // IfcGUID is a default value, keep always as first item. Use Item:GUID for models uploaded with Navis plugin\n    \"IFC%20GUID\": [], \n    // add custom filters below\n    \"Zone Number\": []\n}\n\nallRevisions = false;\n\n\n// ignore the rest\n\nmsg.inputs = {};\nmsg.inputs.filter = filter;\nmsg.inputs.allRev = allRevisions;\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "x": 760.3727722167969,
         "y": 104.12268829345703,
         "wires": [
             [
-                "19ec527c.c81396"
+                "f03c286a.5974c"
             ]
         ]
     },
     {
-        "id": "caaecfdd.b2139",
+        "id": "884d223e.7c61a",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "group by value",
         "info": "set property in \"filter\"\ninput from \"filter\" proto-node\noutput to \"create group\"",
         "x": 1104.8541259765625,
@@ -248,9 +248,9 @@
         "wires": []
     },
     {
-        "id": "bc0f2437.d4e7e8",
+        "id": "dafb48fc.d1aad",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "group by property value",
         "func": "var group = {};\n\nfor(var i=0; i<msg.payload.length; i++){\n    for(var j=0; j<msg.payload[i].length; j++){\n        var prop = String(msg.payload[i][j].value);\n        if(!group.hasOwnProperty(prop)){\n            group[prop] = [];\n        }\n        group[prop] = group[prop].concat(msg.payload[i][j].parents);\n    }\n}\n\nmsg.payload = group;\n\nreturn msg;",
         "outputs": 1,
@@ -259,14 +259,14 @@
         "y": 101.1874771118164,
         "wires": [
             [
-                "2168073.8ae19f8"
+                "7e5f9cf7.cdca84"
             ]
         ]
     },
     {
-        "id": "2168073.8ae19f8",
+        "id": "7e5f9cf7.cdca84",
         "type": "split",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "splt": "\\n",
         "spltType": "str",
@@ -278,14 +278,14 @@
         "y": 154.72916412353516,
         "wires": [
             [
-                "7b8e490d.ccdf88"
+                "e0787900.ac452"
             ]
         ]
     },
     {
-        "id": "28a2951f.8521d2",
+        "id": "276d0797.810078",
         "type": "http request",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "method": "POST",
         "ret": "obj",
@@ -298,9 +298,9 @@
         ]
     },
     {
-        "id": "defc3137.58e6c8",
+        "id": "1afa51d3.d0790e",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "group API call",
         "func": "var cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.topic = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/groups\";\n\nvar group = {};\ngroup.name = msg.inputs.groupName ;\ngroup.description = msg.inputs.desc;\ngroup.author = global.get(\"username\"); \ngroup.createdAt = Date.now();\ngroup.color = msg.inputs.colour;\ngroup.objects = msg.payload;\n\nmsg.payload = group;\n\nreturn msg;",
         "outputs": 1,
@@ -309,30 +309,30 @@
         "y": 403.7953796386719,
         "wires": [
             [
-                "28a2951f.8521d2"
+                "276d0797.810078"
             ]
         ]
     },
     {
-        "id": "26786eef.d6007a",
+        "id": "ef4711c6.7474b",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "shared IDs",
-        "func": "function getKeyByValue(object, value) {\n    return Object.keys(object).find(key => object[key] === value);\n}\n\nvar sharedIDs = [];\nIDmap = flow.get(\"IDmap\");\ntry{\n    var test = IDmap.length;\n}catch(error){\n    node.error(\"Missing ID map\", msg);\n    return;\n}\n\nif (IDmap !== undefined) {\n    if (IDmap.subModels !== undefined) {        // if federation\n        for (var i = 0; i < msg.payload.length; i++) {\n            for (var j = 0; j < IDmap.subModels.length; j++) {\n                var key = getKeyByValue(IDmap.subModels[j].idMap, msg.payload[i]);\n                if (key !== undefined) {\n                    sharedIDs.push(msg.payload[i]);\n                    break;\n                }\n            }\n        }\n    } else {\n        for (var i = 0; i < msg.payload.length; i++) {\n            var key = getKeyByValue(IDmap.idMap, msg.payload[i]);\n            sharedIDs.push(msg.payload[i]);\n        }\n    }\n}\n\nmsg.payload = [{\n    \"account\": flow.get(\"teamspace\"),\n    \"model\": flow.get(\"modelID\"),\n    \"shared_ids\": sharedIDs,\n}];\n\nreturn msg;",
+        "func": "function getKeyByValue(object, value) {\n    return Object.keys(object).find(key => object[key] === value);\n}\n\nvar sharedIDs = [];\nIDmap = flow.get(\"IDmap\");\ntry{\n    var test = IDmap.length;\n}catch(error){\n    node.error(\"Missing ID map\", msg);\n    return;\n}\n\nif (IDmap !== undefined) {\n    if (IDmap.subModels.length !== 0) {        // if federation\n        for (var i = 0; i < msg.payload.length; i++) {\n            for (var j = 0; j < IDmap.subModels.length; j++) {\n                var key = getKeyByValue(IDmap.subModels[j].idMap, msg.payload[i]);\n                if (key !== undefined) {\n                    sharedIDs.push(msg.payload[i]);\n                    break;\n                }\n            }\n        }\n    } else {\n        for (var i = 0; i < msg.payload.length; i++) {\n            var key = getKeyByValue(IDmap.mainTree.idMap, msg.payload[i]);\n            sharedIDs.push(msg.payload[i]);\n        }\n    }\n}\n\nmsg.payload = [{\n    \"account\": flow.get(\"teamspace\"),\n    \"model\": flow.get(\"modelID\"),\n    \"shared_ids\": sharedIDs,\n}];\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "x": 1099.6558227539062,
         "y": 344.8487854003906,
         "wires": [
             [
-                "defc3137.58e6c8"
+                "1afa51d3.d0790e"
             ]
         ]
     },
     {
-        "id": "2ab793fe.255de4",
+        "id": "cc8cbecb.c13fa",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "create group",
         "info": "",
         "x": 1096.3642272949219,
@@ -340,9 +340,9 @@
         "wires": []
     },
     {
-        "id": "7b8e490d.ccdf88",
+        "id": "e0787900.ac452",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "INPUTS",
         "func": "// INPUTS\n\ngroupName =  (msg.topic) ? msg.topic : \"Group\";\ndescription = msg.payload.length + \" from Node-RED\";\ncolour = [parseInt(Math.random()*255),parseInt(Math.random()*255),parseInt(Math.random()*255)];\n\n\n// ignore the rest\n\nmsg.inputs = {};\nmsg.inputs.groupName = groupName;\nmsg.inputs.desc = description;\nmsg.inputs.colour = colour;\n\nreturn msg;",
         "outputs": 1,
@@ -351,14 +351,14 @@
         "y": 298.4598617553711,
         "wires": [
             [
-                "26786eef.d6007a"
+                "ef4711c6.7474b"
             ]
         ]
     },
     {
-        "id": "4e6c3a10.c26adc",
+        "id": "aae68793.0e7d48",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "revisions API",
         "func": "cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/\" + \"revisions.json\"\n\nreturn msg;",
         "outputs": 1,
@@ -367,14 +367,14 @@
         "y": 354.8542289733887,
         "wires": [
             [
-                "4c24f31a.e0654c"
+                "4bb2261b.9f3f08"
             ]
         ]
     },
     {
-        "id": "4c24f31a.e0654c",
+        "id": "4bb2261b.9f3f08",
         "type": "http request",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "method": "GET",
         "ret": "obj",
@@ -384,14 +384,14 @@
         "y": 404.3333787918091,
         "wires": [
             [
-                "f6762aa9.65fba"
+                "596ce4bc.188a04"
             ]
         ]
     },
     {
-        "id": "f6762aa9.65fba",
+        "id": "596ce4bc.188a04",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "OUTPUTS",
         "func": "// all revisions\n\nflow.set(\"revisions\", msg.payload);\n\nreturn {payload:\"\"};\n\n\n// uncomment and specify subset of revisions below\n\n// flow.set(\"revisions\", msg.payload.slice(0,10));\n",
         "outputs": 1,
@@ -400,14 +400,14 @@
         "y": 453.0764627456665,
         "wires": [
             [
-                "7192804f.24c1a8"
+                "f906ad20.f7f71"
             ]
         ]
     },
     {
-        "id": "146bee3b.717412",
+        "id": "e87597f.a071968",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "revisions",
         "info": "get all revisions of a model\n\nto choose only subset of revisions use:\nmsg.payload.slice(0,3)\n\nplace after login",
         "x": 473.35414695739746,
@@ -415,9 +415,9 @@
         "wires": []
     },
     {
-        "id": "7192804f.24c1a8",
+        "id": "f906ad20.f7f71",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "ID map call",
         "func": "cookie = flow.get(\"cookie\");\n\ntry{\n    revID = flow.get(\"revisions\")[0]._id;\n}catch(error){\n    node.error(\"Missing revisions\", msg);\n    return;\n}\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/revision/\" + revID + \"/idmap.json\";\n\nreturn msg;\n",
         "outputs": 1,
@@ -426,14 +426,14 @@
         "y": 592.3542594909668,
         "wires": [
             [
-                "3bacad49.d79e6a"
+                "29a530de.e83a08"
             ]
         ]
     },
     {
-        "id": "3bacad49.d79e6a",
+        "id": "29a530de.e83a08",
         "type": "http request",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "method": "GET",
         "ret": "obj",
@@ -443,14 +443,14 @@
         "y": 645.8854370117188,
         "wires": [
             [
-                "fac9d89d.de2498"
+                "d698d907.a2ac18"
             ]
         ]
     },
     {
-        "id": "207cb32d.1831e4",
+        "id": "52dba063.d11f88",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "ID map",
         "info": "",
         "x": 476.76068115234375,
@@ -458,9 +458,9 @@
         "wires": []
     },
     {
-        "id": "fac9d89d.de2498",
+        "id": "d698d907.a2ac18",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "set ID map",
         "func": "flow.set(\"IDmap\", msg.payload);\n\nreturn {payload:\"\"};",
         "outputs": 1,
@@ -472,9 +472,9 @@
         ]
     },
     {
-        "id": "52118ad3.7a443c",
+        "id": "f2bea371.b723c",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "how to",
         "info": "log in at http://localhost:1880/ui/#/0 or http://yourVPS:1880/ui/#/0\nset your teamspace and model ID of Lego_House_Federation in MAIN INPUTS\ndeploy\nopen or reload Lego_House_Federation in 3D Repo, see the results in Groups card\nopen dashboard at http://localhost:1880/ui/#/1 to see stats\nchange property in filter INPUTS to create different groups",
         "x": 152.2083282470703,
@@ -482,12 +482,12 @@
         "wires": []
     },
     {
-        "id": "e795f9d3.54c",
+        "id": "ae744f00.fb437",
         "type": "ui_text_input",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "label": "Username",
-        "group": "f84d2c74.ad323",
+        "group": "786cd61b.0f9e",
         "order": 1,
         "width": 0,
         "height": 0,
@@ -499,17 +499,17 @@
         "y": 529.8541946411133,
         "wires": [
             [
-                "53ad094b.4d2348"
+                "d5049400.237af8"
             ]
         ]
     },
     {
-        "id": "2a086c8a.fd91e4",
+        "id": "2980759.e30e90a",
         "type": "ui_text_input",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "label": "Password",
-        "group": "f84d2c74.ad323",
+        "group": "786cd61b.0f9e",
         "order": 2,
         "width": 0,
         "height": 0,
@@ -521,14 +521,14 @@
         "y": 616.2474670410156,
         "wires": [
             [
-                "be7d56c1.dbc02"
+                "7babcff8.e5a4b8"
             ]
         ]
     },
     {
-        "id": "53ad094b.4d2348",
+        "id": "d5049400.237af8",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "username",
         "func": "global.set(\"username\",msg.payload);",
         "outputs": 1,
@@ -540,9 +540,9 @@
         ]
     },
     {
-        "id": "be7d56c1.dbc02",
+        "id": "7babcff8.e5a4b8",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "password",
         "func": "global.set(\"password\",msg.payload);\n\n",
         "outputs": 1,
@@ -554,9 +554,9 @@
         ]
     },
     {
-        "id": "49256d48.a8aa4c",
+        "id": "a88c08dd.f31b",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "login details",
         "info": "input your login details in dashboard at\n\nhttp://localhost:1880/ui/#/0\n\nset as global variable hence use only once for multiple flows",
         "x": 158.02085876464844,
@@ -564,11 +564,11 @@
         "wires": []
     },
     {
-        "id": "a888ed43.25644",
+        "id": "232cbb2a.426cd4",
         "type": "ui_chart",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "count by meta",
-        "group": "b4d74911.bc3c1",
+        "group": "72c07ecd.6d4be8",
         "order": 2,
         "width": 0,
         "height": 0,
@@ -606,9 +606,9 @@
         ]
     },
     {
-        "id": "f959ed07.7b0b6",
+        "id": "4bd4b432.7318d4",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "counter",
         "info": "takes filter output, one or multiple revisions\n\nreturns quantities by metadata property",
         "x": 769.066853841146,
@@ -616,9 +616,9 @@
         "wires": []
     },
     {
-        "id": "b8462db4.5a3c88",
+        "id": "bef99b8e.9aa81",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "count by meta",
         "func": "function sort(object){\n    if (typeof object != \"object\" || object instanceof Array) // Not to sort the array\n        return object;\n    var keys = Object.keys(object);\n    keys.sort();\n    var newObject = {};\n    for (var i = 0; i < keys.length; i++){\n        newObject[keys[i]] = sort(object[keys[i]])\n    }\n    return newObject;\n}\n\nif(msg.inputs.splitByRevision){\n    var allCounters = []\n    for(var i=0; i<msg.payload.length; i++){\n        var counter = {};\n        for(var j=0; j<msg.payload[i].length; j++){\n            var prop = String(msg.payload[i][j].value);\n            if(counter.hasOwnProperty(prop)){\n                counter[prop] += 1;\n            }else{\n                counter[prop] = 1;\n            }\n        }\n        sorted = sort(counter);\n        allCounters.push(counter);\n    }\n    msg.payload = allCounters;\n}else{\n    var counter = {};\n    for(var i=0; i<msg.payload.length; i++){\n        for(var j=0; j<msg.payload[i].length; j++){\n            var prop = String(msg.payload[i][j].value);\n            if(counter.hasOwnProperty(prop)){\n                counter[prop] += 1;\n            }else{\n                counter[prop] = 1;\n            }\n        }\n    }\n    sorted = sort(counter);\n    msg.payload = [sorted];\n}\n\nreturn msg;",
         "outputs": 1,
@@ -627,14 +627,14 @@
         "y": 585.8925416734484,
         "wires": [
             [
-                "38e09d97.3216ea"
+                "daf132a1.a0a8e8"
             ]
         ]
     },
     {
-        "id": "38e09d97.3216ea",
+        "id": "daf132a1.a0a8e8",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "format",
         "func": "var data = [];\nvar labels = [];\nvar series = [];\nvar revisions = flow.get(\"revisions\");\nvar m = {};\n\nif(msg.inputs.splitByRevision){\n    for(var i=0; i<msg.payload.length; i++){\n        if(revisions[i] !== undefined){\n            if(revisions[i].tag !== undefined){\n                series.push(revisions[i].tag);\n            }else{\n                series.push(String(String(revisions[i].timestamp).split(\".\")[0]).replace(\"T\", \" \"));\n            }\n        }\n        for(var j=0; j<Object.keys(msg.payload[i]).length; j++){\n            if(labels.indexOf(Object.keys(msg.payload[i])[j]) === -1){\n                labels.push(Object.keys(msg.payload[i])[j]);\n            }\n        }\n    }\n    for(var i=0; i<msg.payload.length; i++){\n        temp = [];\n        for(var k=0; k<labels.length; k++){\n            if(msg.payload[i].hasOwnProperty(labels[k])){\n                temp.push(msg.payload[i][labels[k]]);\n            }else{\n                temp.push(0)\n            }\n            \n        }\n        data.push(temp);\n    }\n    m.labels = labels;\n    m.series = series;\n    m.data = data;\n    msg.payload = [m];\n    \n}else{\n    for(var i=0; i<msg.payload.length; i++){\n        for(var j=0; j<Object.keys(msg.payload[i]).length; j++){\n            labels.push(Object.keys(msg.payload[i])[j]);\n            data.push(msg.payload[i][Object.keys(msg.payload[i])[j]]);\n        }\n    }\n    m.labels = labels;\n    m.series = [\"Count\"];\n    m.data = [data];\n    msg.payload = [m];\n}\n\nreturn msg;\n\n\n",
         "outputs": "1",
@@ -643,14 +643,14 @@
         "y": 634.2258241441515,
         "wires": [
             [
-                "a888ed43.25644"
+                "232cbb2a.426cd4"
             ]
         ]
     },
     {
-        "id": "97dea5ea.40e4a",
+        "id": "23e65f99.f07078",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "INPUTS",
         "func": "// INPUTS\n\nsplitByRevision = false;\n\n\n// ignore the rest\n\nmsg.inputs = {};\nmsg.inputs.splitByRevision = splitByRevision;\n\nreturn msg;",
         "outputs": 1,
@@ -659,14 +659,14 @@
         "y": 535.3170776367188,
         "wires": [
             [
-                "b8462db4.5a3c88"
+                "bef99b8e.9aa81"
             ]
         ]
     },
     {
-        "id": "95d099fa.acdf58",
+        "id": "bdcdddac.1db55",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "filter property",
         "func": "a = Object.keys(msg.inputs.filter);\na.shift();\nmsg.payload = a;\n\nreturn msg;",
         "outputs": 1,
@@ -675,15 +675,15 @@
         "y": 761.2500245836046,
         "wires": [
             [
-                "65e66cd9.656294"
+                "654997ef.d4758"
             ]
         ]
     },
     {
-        "id": "65e66cd9.656294",
+        "id": "654997ef.d4758",
         "type": "ui_template",
-        "z": "36c474d6.bc486c",
-        "group": "f7b2de2c.040e2",
+        "z": "5a7b2d60.bb1d44",
+        "group": "c947952f.54886",
         "name": "properties",
         "order": 4,
         "width": "5",
@@ -699,9 +699,9 @@
         ]
     },
     {
-        "id": "d0d76f66.841d48",
+        "id": "db5bf9ec.8443f",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "display filtered",
         "info": "",
         "x": 777.8694661458335,
@@ -709,9 +709,9 @@
         "wires": []
     },
     {
-        "id": "e1403b8f.69606",
+        "id": "6f33f14a.a3e99",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "teamspace",
         "func": "msg.payload = flow.get(\"teamspace\");\n\nreturn msg;",
         "outputs": 1,
@@ -720,14 +720,14 @@
         "y": 830,
         "wires": [
             [
-                "ae471b8f.59b8"
+                "40a919d6.583d08"
             ]
         ]
     },
     {
-        "id": "621bfdde.4f4154",
+        "id": "9d00ddec.56714",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "model settings",
         "func": "cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n    \"content-type\":\"application/json\",\n    \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \".json\";\n\nreturn msg;",
         "outputs": 1,
@@ -736,14 +736,14 @@
         "y": 878.7521376609802,
         "wires": [
             [
-                "7a245764.9f98c8"
+                "450fbb9c.90765c"
             ]
         ]
     },
     {
-        "id": "7a245764.9f98c8",
+        "id": "450fbb9c.90765c",
         "type": "http request",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "",
         "method": "GET",
         "ret": "obj",
@@ -753,14 +753,14 @@
         "y": 932.4435119628906,
         "wires": [
             [
-                "97e2ab9.fc06058"
+                "a1c6c734.4dbdb"
             ]
         ]
     },
     {
-        "id": "97e2ab9.fc06058",
+        "id": "a1c6c734.4dbdb",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "name",
         "func": "if(msg.payload.name){\n    msg.name = msg.payload.name;\n}else{\n    msg.name = \"NOT AUTHORISED\";\n}\n\nif(msg.payload.federate === true){\n    msg.type = \"federation: \";\n}else{\n    msg.type = \"model: \";\n}\n\nreturn msg;",
         "outputs": 1,
@@ -769,14 +769,14 @@
         "y": 927.4999694824219,
         "wires": [
             [
-                "3e909068.bcf7"
+                "a5d1604.906122"
             ]
         ]
     },
     {
-        "id": "e166805b.d5b6d",
+        "id": "4d0da6f7.e74b8",
         "type": "function",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "---",
         "func": "return msg;",
         "outputs": 1,
@@ -785,16 +785,16 @@
         "y": 822.5,
         "wires": [
             [
-                "621bfdde.4f4154",
-                "e1403b8f.69606"
+                "9d00ddec.56714",
+                "6f33f14a.a3e99"
             ]
         ]
     },
     {
-        "id": "3e909068.bcf7",
+        "id": "a5d1604.906122",
         "type": "ui_text",
-        "z": "36c474d6.bc486c",
-        "group": "f7b2de2c.040e2",
+        "z": "5a7b2d60.bb1d44",
+        "group": "c947952f.54886",
         "order": 1,
         "width": 0,
         "height": 0,
@@ -807,10 +807,10 @@
         "wires": []
     },
     {
-        "id": "ae471b8f.59b8",
+        "id": "40a919d6.583d08",
         "type": "ui_text",
-        "z": "36c474d6.bc486c",
-        "group": "f7b2de2c.040e2",
+        "z": "5a7b2d60.bb1d44",
+        "group": "c947952f.54886",
         "order": 2,
         "width": 0,
         "height": 0,
@@ -823,10 +823,10 @@
         "wires": []
     },
     {
-        "id": "e3e68813.d049a",
+        "id": "3825bbc5.f63a34",
         "type": "ui_text",
-        "z": "36c474d6.bc486c",
-        "group": "f7b2de2c.040e2",
+        "z": "5a7b2d60.bb1d44",
+        "group": "c947952f.54886",
         "order": 3,
         "width": 0,
         "height": 0,
@@ -839,9 +839,9 @@
         "wires": []
     },
     {
-        "id": "ef245241.3c3fd",
+        "id": "a069d768.6c7368",
         "type": "comment",
-        "z": "36c474d6.bc486c",
+        "z": "5a7b2d60.bb1d44",
         "name": "details",
         "info": "",
         "x": 336.84429931640625,
@@ -849,38 +849,38 @@
         "wires": []
     },
     {
-        "id": "f84d2c74.ad323",
+        "id": "786cd61b.0f9e",
         "type": "ui_group",
         "z": "",
         "name": "Log In",
-        "tab": "cc1d5288.5918e",
+        "tab": "41e75df0.ebbfec",
         "order": 1,
         "disp": true,
         "width": "6",
         "collapse": false
     },
     {
-        "id": "b4d74911.bc3c1",
+        "id": "72c07ecd.6d4be8",
         "type": "ui_group",
         "z": "",
         "name": "Results",
-        "tab": "cae09d74.d66fd",
+        "tab": "e3ee9ce8.30d31",
         "order": 2,
         "disp": true,
         "width": "18"
     },
     {
-        "id": "f7b2de2c.040e2",
+        "id": "c947952f.54886",
         "type": "ui_group",
         "z": "",
         "name": "Details",
-        "tab": "cae09d74.d66fd",
+        "tab": "e3ee9ce8.30d31",
         "order": 1,
         "disp": true,
         "width": "5"
     },
     {
-        "id": "cc1d5288.5918e",
+        "id": "41e75df0.ebbfec",
         "type": "ui_tab",
         "z": "",
         "name": "Log In",
@@ -888,7 +888,7 @@
         "order": 1
     },
     {
-        "id": "cae09d74.d66fd",
+        "id": "e3ee9ce8.30d31",
         "type": "ui_tab",
         "z": "",
         "name": "Stats",
