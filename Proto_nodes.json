@@ -2063,6 +2063,47 @@
         ]
     },
     {
+        "id": "e5521f26.830d6",
+        "type": "function",
+        "z": "ae489c10.7053e8",
+        "name": "viewpoints call",
+        "func": "cookie = flow.get(\"cookie\");\n\nmsg.headers = {\n \"content-type\":\"application/json\",\n \"Cookie\": cookie\n};\n\nmsg.payload = \"https://api1.www.3drepo.io/api/\" + flow.get(\"teamspace\") + \"/\" + flow.get(\"modelID\") + \"/\" + \"viewpoints\"\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 2524,
+        "y": 931,
+        "wires": [
+            [
+                "8121b9b9.3bc798"
+            ]
+        ]
+    },
+    {
+        "id": "8121b9b9.3bc798",
+        "type": "http request",
+        "z": "ae489c10.7053e8",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "url": "{{{payload}}}",
+        "tls": "",
+        "x": 2524.5,
+        "y": 980,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "91541e7.1dcfae",
+        "type": "comment",
+        "z": "ae489c10.7053e8",
+        "name": "get views",
+        "info": "",
+        "x": 2524.3541259765625,
+        "y": 883.7083129882812,
+        "wires": []
+    },
+    {
         "id": "d590139a.ebf45",
         "type": "ui_group",
         "z": "",
